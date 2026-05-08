@@ -21,4 +21,16 @@ using PythonCall
         ver = string(KernelTuner.kt[].__version__)
         @test ver isa String
     end
+
+    # TODO write actual test
+    # @testset "Data Conversion (NumPy/Julia)" begin
+    #     # Testing that a Julia array goes in and a result comes out
+    #     data = Float32[1.0, 2.0, 3.0]
+
+    #     # Test a wrapped function
+    #     # PythonCall will wrap the Julia array as a NumPy-compatible object
+    #     result = KernelTuner.tune_kernel(data)
+
+    #     @test result isa Py  # Or whatever type you expect back
+    # end
 end

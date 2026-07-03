@@ -1,8 +1,14 @@
-[pip]
-kernel-tuner = ">=1.3.3"
+# [pip]
+# kernel-tuner = ">=1.5.0"
 
-    [pip.deps]
-    kernel-tuner = ">=1.3.3"
+[pip.deps.kernel-tuner]
+# version = ">=1.5.0"
+version = "@ ../kernel_tuner"
+editable = true
 
-    [pip.dev-deps]
-    # kernel-tuner = { path = "../kernel_tuner", editable = true }
+# [pip.deps]
+# kernel-tuner = ">=1.5.0"
+# kernel-tuner = { path = "../kernel_tuner", editable = true }
+
+# [pip.dev-deps]
+# kernel-tuner = { path = "../kernel_tuner", editable = true }

@@ -29,6 +29,10 @@ Then run the as follows: `tune_kernel("kernel!",kernelfile.jl", ["BLOCKDIM_X", ]
 ## Requirements
 
 Running this package requires:
-- KernelAbstractions (at this time specifically #d4ffa3b2ec53fab879706cdab0dacafa7d8535b3)
+- KernelAbstractions (most recently tested with latest master, #a8022b2)
 - Either CUDA, AMDGPU, OneAPI or Metal packages
 - PythonCall and CondaPkg
+
+## Development & Testing
+
+To develop and test running the package locally, install the main Kernel Tuner repository alongside this one, and in `CondaPkg.toml` comment the PIP version and set the correct local path instead. 

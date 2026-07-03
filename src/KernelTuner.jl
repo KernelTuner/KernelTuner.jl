@@ -19,10 +19,17 @@ function __init__()
     end
 end
 
-# Example: Wrap a Python function to make it feel like Julia
+# wrap the Python functions
 export tune_kernel
 function tune_kernel(args...; kwargs...)
-    return kt[].tune_kernel(args...; kwargs...)
+    res = kt[].tune_kernel(args...; kwargs...)
+    return pyconvert(Tuple{Tuple,Dict}, res)
+end
+
+export run_kernel
+function run_kernel(args...; kwargs...)
+    result = kt[].run_kernel(args...; kwargs...)
+    return pyconvert(Vector{Any}, result)  # convert to a Julia vector of Any
 end
 
 end # module KernelTuner

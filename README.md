@@ -26,6 +26,9 @@ As per [`example.jl`](examples/example.jl) in [examples](examples), the followin
 
 Then run the as follows: `tune_kernel("kernel!",kernelfile.jl", ["BLOCKDIM_X", ], ("BLOCKDIM_X*NUMBLOCKS_X",) , [("BLOCKDIM_X", [16, 32]),("NUMBLOCKS_X", [16, 32])])` 
 
+## Notes
+- The CPU backend is always available, but not selected by default. On devices with GPU backends, the GPU backend is selected by default. To use the CPU backend, you must pass `compiler_options=["CPU"]`. 
+
 ## Requirements
 
 Running this package requires:

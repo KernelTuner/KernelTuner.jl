@@ -1,6 +1,6 @@
 using KernelTuner
 using Test
-using PythonCall
+using PythonCall    # for the first test
 
 # Uncomment for debugging
 # using CondaPkg
@@ -39,12 +39,12 @@ using PythonCall
         @test !isempty(kernel_code)
 
         # Set up the arguments for the kernel
-        size = 10000000
+        size = Int32(10000000)
         rsize = size ÷ 4  # Repeat the base array to reach the desired size
         a = repeat(Float32[1, 2, 3, 4], outer=rsize)
         b = repeat(Float32[10, 20, 30, 40], outer=rsize)
         c = zeros(Float32, size)
-        arguments = [c, a, b, Int32(size)]
+        arguments = [c, a, b, size]
 
         # Run the kernel
         results = KernelTuner.run_kernel(
@@ -54,6 +54,7 @@ using PythonCall
             arguments,
             [],
             lang="Julia",
+            compiler_options=["CPU"],
         )
 
         # Verify the results
@@ -78,7 +79,7 @@ using PythonCall
         """
 
         # Set up the arguments and tunable parameters
-        size = 10000000
+        size = Int32(10000000)
         rsize = size ÷ 4  # Repeat the base array to reach the desired size
         a = repeat(Float32[1, 2, 3, 4], outer=rsize)
         b = repeat(Float32[10, 20, 30, 40], outer=rsize)
@@ -92,12 +93,13 @@ using PythonCall
             "vector_add!",
             kernel_code,
             (size,),
-            [c, a, b, Int32(size)],
+            [c, a, b, size],
             tune_params,
             grid_div_x=1, grid_div_y=1,
             block_size_names=["block_size_x"],
             lang="Julia",
             answer=[repeat(Float32[11, 22, 33, 44], outer=rsize), nothing, nothing, nothing],
+            compiler_options=["CPU"],
         )
 
         # Verify the results

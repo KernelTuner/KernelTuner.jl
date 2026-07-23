@@ -39,3 +39,78 @@ Running this package requires:
 ## Development & Testing
 
 To develop and test running the package locally, install the main Kernel Tuner repository alongside this one, and in `CondaPkg.toml` comment the PIP version and set the correct local path instead. 
+
+## Examples
+Given the following simple example:
+
+```
+using KernelAbstractions
+
+# Define the kernel
+@kernel function vector_add!(C, A, B, n)
+    i = @index(Global)
+    if i <= n
+        @inbounds C[i] = A[i] + B[i]
+    end
+end
+
+# Set up the arguments for the kernel
+backend = CPU()     # or your GPU backend of choice
+size = Int32(10000000)
+rsize = size ÷ 4  # Repeat the base array to reach the desired size
+a = repeat(Float32[1, 2, 3, 4], outer=rsize)
+b = repeat(Float32[10, 20, 30, 40], outer=rsize)
+c = zeros(Float32, size)
+
+# Run the kernel
+kernel! = vector_add!(backend, 128)
+kernel!(c, a, b, size, ndrange=size)
+synchronize(backend)
+println("Kernel completed. First 10 results: ", c[1:10])
+```
+
+It can also be run directly via Kernel Tuner as follows:
+```
+using KernelTuner
+
+# Set up the arguments for the kernel
+c = zeros(Float32, size)
+arguments = [c, a, b, size]
+
+# Run the kernel
+results = KernelTuner.run_kernel(
+    "vector_add!",
+    kernel_code,    # can be either a string or the path to the file
+    (size,),
+    arguments,
+    [],
+    lang="Julia",
+    compiler_options=["CPU"],
+)
+println("Kernel completed. First 10 results: ", results[1][1:10])
+```
+
+The interesting part of course is tuning. 
+This can be done as follows:
+```
+tune_params = [
+    ("block_size_x", [32, 64, 128, 256, 512])
+]
+
+# Tune the kernel
+results = KernelTuner.tune_kernel(
+    "vector_add!",
+    kernel_code,
+    (size,),
+    [c, a, b, size],
+    tune_params,
+    grid_div_x=1, grid_div_y=1,
+    block_size_names=["block_size_x"],
+    lang="Julia",
+    compiler_options=["CPU"],
+)
+```
+
+This is a simple example, much more extensive functionality is available. 
+For this example, you might want to add `answer=[repeat(Float32[11, 22, 33, 44], outer=rsize), nothing, nothing, nothing],` for output verification. 
+See the [Kernel Tuner documentation](https://kerneltuner.github.io/kernel_tuner/stable/index.html) for more information. 

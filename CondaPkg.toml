@@ -1,15 +1,5 @@
-# [pip]
-# kernel-tuner = ">=1.5.0"
-
 [pip.deps.kernel-tuner]
 # version = ">=1.5.0"   # for production
 # version = "@ ../kernel_tuner" # for local
 version = "@ git+https://github.com/KernelTuner/kernel_tuner.git@julia" # for CI
 editable = true
-
-# [pip.deps]
-# kernel-tuner = ">=1.5.0"
-# kernel-tuner = { path = "../kernel_tuner", editable = true }
-
-# [pip.dev-deps]
-# kernel-tuner = { path = "../kernel_tuner", editable = true }

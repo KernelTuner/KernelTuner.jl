@@ -32,13 +32,15 @@ Then run the as follows: `tune_kernel("kernel!",kernelfile.jl", ["BLOCKDIM_X", ]
 ## Requirements
 
 Running this package requires:
+- Julia >= 1.12
 - KernelAbstractions (most recently tested with latest master, #a8022b2)
 - Either CUDA, AMDGPU, OneAPI or Metal packages
 - PythonCall and CondaPkg
 
 ## Development & Testing
 
-To develop and test running the package locally, install the main Kernel Tuner repository alongside this one, and in `CondaPkg.toml` comment the PIP version and set the correct local path instead. 
+To develop and test running the package locally, install the main Kernel Tuner repository alongside this one, create a Python environment, run `pip install -e .` in it, and run `pytest` to make sure it is installed correctly. 
+Following this, `cd` to the local path of this repository, in `CondaPkg.toml` comment the version and set the correct local path instead, and run `julia --project=.` followed by `] test]` to test the Julia installation.  
 
 ## Examples
 Given the following simple example:

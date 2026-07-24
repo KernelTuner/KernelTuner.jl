@@ -22,7 +22,6 @@ synchronize(backend)
 println("Kernel completed. First 10 results: ", c[1:10])
 println(typeof(c))
 
-
 # Execution via Kernel tuner
 
 using KernelTuner

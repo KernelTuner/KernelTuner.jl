@@ -9,7 +9,7 @@
 [![FairSoftware Badge](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F-green)](https://fair-software.eu)
 ---
 
-**KernelTuner.jl** brings Kernel Tuner's wide array of auto-tuning capabilities to the Julia ecosystem with this minimal wrapper implementation, providing the first full-fledged auto-tuning framework for Julia. For more information and [documentation](https://kerneltuner.github.io/kernel_tuner/stable/index.html), please see the [main Kernel Tuner repository](https://github.com/KernelTuner/kernel_tuner).
+**KernelTuner.jl** brings Kernel Tuner's wide array of auto-tuning capabilities to the Julia ecosystem, providing the first full-fledged auto-tuning framework for Julia. For more information and [documentation](https://kerneltuner.github.io/kernel_tuner/stable/index.html), please see the [main Kernel Tuner repository](https://github.com/KernelTuner/kernel_tuner).
 
 ## GPU kernel writing
 
@@ -32,7 +32,7 @@ Then run the as follows: `tune_kernel("kernel!",kernelfile.jl", ["BLOCKDIM_X", ]
 ## Requirements
 
 Running this package requires:
-- Julia >= 1.12
+- Julia >= 1.11
 - KernelAbstractions (most recently tested with latest master, #a8022b2)
 - Either CUDA, AMDGPU, OneAPI or Metal packages
 - PythonCall and CondaPkg

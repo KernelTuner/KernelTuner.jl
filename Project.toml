@@ -1,4 +1,4 @@
-name = "KernelTuner.jl"
+name = "KernelTuner"
 uuid = "d8e2316b-1d0f-4d2d-8459-42354ee22310"
 version = "0.0.1"
 # version = "1.5.0-beta.1"

@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="500px" src="https://raw.githubusercontent.com/KernelTuner/kernel_tuner/master/doc/images/KernelTuner-logo.png"/>
+  <img width="500px" src="https://raw.githubusercontent.com/KernelTuner/KernelTuner.jl/main/doc/assets/logo.png"/>
 </div>
 
 ---

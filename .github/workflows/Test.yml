@@ -1,6 +1,30 @@
 name: Run Tests
-on: [push, pull_request]
 
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - 'examples/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/workflows/CI.yml'
+      - '.github/workflows/TagBot.yml'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'README.md'
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - 'examples/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/workflows/CI.yml'
+      - '.github/workflows/TagBot.yml'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'README.md'
 jobs:
   test:
     timeout-minutes: 20

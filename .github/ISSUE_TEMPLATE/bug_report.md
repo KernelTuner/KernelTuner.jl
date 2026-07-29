@@ -24,18 +24,18 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Hardware (please complete the following information):**
- - CPU
- - RAM (optional)
- - GPU
- - VRAM (optional)
-
-**Software (please complete the following information):**
+**Software (please complete the following information to your best ability):**
  - OS
  - KernelTuner.jl version
  - KernelTuner version
  - Julia version
  - Python version
+
+**Hardware (please complete the following information to your best ability):**
+ - CPU
+ - RAM (optional)
+ - GPU
+ - VRAM (optional)
 
 **Additional context**
 Add any other context about the problem here.

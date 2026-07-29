@@ -8,6 +8,9 @@ type: Bug
 
 ---
 
+**Duplicate prevention**
+[ ] I have checked that there is no other [issue](https://github.com/KernelTuner/KernelTuner.jl/issues) or [discussion](https://github.com/KernelTuner/KernelTuner.jl/discussions) on this topic
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 

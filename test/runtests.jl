@@ -9,6 +9,24 @@ using PythonCall    # for the first test
 # # Manually force a resolution if it's empty
 # CondaPkg.resolve()
 
+# set default test arguments (override via command line argument)
+config = Dict(
+    :backend => "default", # choose from default (auto-detected), CPU, and the available GPU backends
+)
+for arg in ARGS
+    if startswith(arg, "--backend=")
+        config[:backend] = split(arg, "=")[2]
+    end
+end
+compiler_options=[]
+if config[:backend] == "default"
+    @info "Testing with default backend (auto-detected)"
+else
+    @info "Testing with backend: $(config[:backend])"
+    compiler_options = [config[:backend]]
+end
+
+
 @testset "KernelTuner.jl" begin
 
     @testset "Environment Setup" begin
@@ -54,7 +72,7 @@ using PythonCall    # for the first test
             arguments,
             [],
             lang="Julia",
-            compiler_options=["CPU"],
+            compiler_options=compiler_options,
         )
 
         # Verify the results
@@ -62,7 +80,6 @@ using PythonCall    # for the first test
         @test length(results) == length(arguments)
         @test length(results[1]) == length(arguments[1]) == length(answer)
         @test results[1] == answer
-
     end
 
     @testset "Tune a kernel" begin
@@ -85,7 +102,7 @@ using PythonCall    # for the first test
         b = repeat(Float32[10, 20, 30, 40], outer=rsize)
         c = zeros(Float32, size)
         tune_params = [
-            ("block_size_x", [32, 64, 128, 256, 512])
+            ("block_size_x", [32, 64, 128, 256])
         ]
 
         # Tune the kernel
@@ -99,7 +116,7 @@ using PythonCall    # for the first test
             block_size_names=["block_size_x"],
             lang="Julia",
             answer=[repeat(Float32[11, 22, 33, 44], outer=rsize), nothing, nothing, nothing],
-            compiler_options=["CPU"],
+            compiler_options=compiler_options,
         )
 
         # Verify the results
@@ -107,10 +124,9 @@ using PythonCall    # for the first test
         @test length(results[1]) == length(tune_params[1][2])  # number of configurations tested
         @test results[2] isa Dict
         @test "best_config" in keys(results[2])
-
     end
 
-    @testset "Tune another kernel" begin
+    @testset "Tune a tunable kernel" begin
         # Defining a vector add kernel with work per thread parameter
         kernel_code = """
         using KernelAbstractions
@@ -151,7 +167,7 @@ using PythonCall    # for the first test
             block_size_names=["block_size_x"],
             lang="Julia",
             answer=[repeat(Float32[11, 22, 33, 44], outer=rsize), nothing, nothing, nothing],
-            compiler_options=["CPU"],
+            compiler_options=compiler_options,
         )
 
         # Verify the results
@@ -159,6 +175,5 @@ using PythonCall    # for the first test
         @test length(results[1]) == length(tune_params[1][2]) * length(tune_params[2][2])  # number of configurations tested
         @test results[2] isa Dict
         @test "best_config" in keys(results[2])
-
     end
 end

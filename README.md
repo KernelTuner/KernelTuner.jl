@@ -15,6 +15,7 @@
 To install, just run `] add KernelTuner` in a Julia >= 1.11 environment. You can then use KernelTuner with `using KernelTuner`, as seen in the [examples](#examples). 
 
 ## Table of Contents <!-- omit from toc -->
+- [](#)
 - [Installation \& Quick Start](#installation--quick-start)
 - [Examples](#examples)
 - [Additional information](#additional-information)
@@ -167,7 +168,8 @@ Then run the as follows: `tune_kernel("kernel!",kernelfile.jl", ["BLOCKDIM_X", ]
 ## Development & Testing
 
 To develop and test running the package locally, install the main Kernel Tuner repository alongside this one, create a Python environment, run `pip install -e .` in it, and run `pytest` to make sure it is installed correctly. 
-Following this, `cd` to the local path of this repository, in `CondaPkg.toml` comment the version and set the correct local path instead, and run `julia --project=.` followed by `] test]` to test the Julia installation.  
+Following this, `cd` to the local path of this repository, in `CondaPkg.toml` comment the version and set the correct local path instead.
+Finally, run `julia --project test/runtests.jl` (optionally with a backend of your choice such as `--backend=CPU`) to test the installation.  
 
 ### Requirements
 

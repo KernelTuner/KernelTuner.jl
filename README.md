@@ -164,6 +164,8 @@ Then run the as follows: `tune_kernel("kernel!",kernelfile.jl", ["BLOCKDIM_X", ]
 
 ### Notes
 - The CPU backend is always available, but not selected by default. On devices with GPU backends, the GPU backend is selected by default. To use the CPU backend, you must pass `compiler_options=["CPU"]`. 
+- Because the KernelAbstraction mixes arguments and tunable parameters, some argument checking may be skipped. 
+- To have failed kernels error instead of produce warnings, add `raise_errors=True` to `compiler_options`. 
 
 ## Development & Testing
 

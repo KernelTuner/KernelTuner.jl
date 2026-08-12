@@ -22,7 +22,7 @@ To install, just run `] add KernelTuner` in a Julia >= 1.11 environment. You can
   - [GPU kernel writing](#gpu-kernel-writing)
   - [Input parameters](#input-parameters)
   - [Notes](#notes)
-- [Development \& Testing](#development--testing)
+- [Development, Testing \& Contributing](#development-testing--contributing)
   - [Requirements](#requirements)
 
 ## Examples
@@ -167,11 +167,14 @@ Then run the as follows: `tune_kernel("kernel!",kernelfile.jl", ["BLOCKDIM_X", ]
 - Because the KernelAbstraction mixes arguments and tunable parameters, some argument checking may be skipped. 
 - To have failed kernels error instead of produce warnings, add `raise_errors=True` to `compiler_options`. 
 
-## Development & Testing
+## Development, Testing & Contributing
 
 To develop and test running the package locally, install the main Kernel Tuner repository alongside this one, create a Python environment, run `pip install -e .` in it, and run `pytest` to make sure it is installed correctly. 
 Following this, `cd` to the local path of this repository, in `CondaPkg.toml` comment the version and set the correct local path instead.
-Finally, run `julia --project test/runtests.jl` (optionally with a backend of your choice such as `--backend=CPU`) to test the installation.  
+Finally, run `julia --project test/runtests.jl` (optionally with a backend of your choice such as `--backend=CPU`) to test the installation. 
+
+When contributing to KernelTuner.jl, always check the existing issues and discussions before opening a new one. 
+Before submitting a pull request, ensure all tests pass, and if necessary changes were made to Kernel Tuner, also ensure all tests pass there using `nox` (see the Kernel Tuner developer documentation for the options to use with `nox`, e.g. selecting which GPU platforms to test for). 
 
 ### Requirements
 

@@ -1,7 +1,6 @@
 name = "KernelTuner"
 uuid = "d8e2316b-1d0f-4d2d-8459-42354ee22310"
-version = "0.0.1"
-# version = "1.5.0-beta.1"
+version = "0.0.2"
 authors = ["Floris-Jan Willemsen <6725103+fjwillemsen@users.noreply.github.com>, Evelyne Ringoot <110474206+evelyne-ringoot@users.noreply.github.com>"]
 
 [deps]
@@ -12,9 +11,9 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-julia = "1.11, 1.12, 1.13"
 CondaPkg = "0.2.36"
 KernelAbstractions = "0.9.41"
 PythonCall = "0.9.35"
 Random = "1.11.0"
 Test = "1.11.0"
+julia = "1.11, 1.12, 1.13" # when changed, also see `require_julia` in noxfile.py and the setup-julia version in the GitHub Actions workflow

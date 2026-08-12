@@ -1,4 +1,4 @@
-name: CI
+name: CD
 on:
     # Workflow will run when a release has been published for the package
     release:

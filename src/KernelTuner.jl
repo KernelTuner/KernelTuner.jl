@@ -7,6 +7,11 @@ using CondaPkg
 const kt = Ref{Py}(Py(nothing))
 
 function __init__()
+    # OS check
+    if Sys.iswindows()
+        error("KernelTuner.jl only supports macOS and Linux. Windows is not supported.")
+    end
+
     # This runs when the user types `using KernelTuner`
     try
         kt[] = pyimport("kernel_tuner")

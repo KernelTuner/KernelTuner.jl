@@ -37,4 +37,14 @@ function run_kernel(args...; kwargs...)
     return pyconvert(Vector{Any}, result)  # convert to a Julia vector of Any
 end
 
+export detect_julia_gpu_backends
+function detect_julia_gpu_backends()
+    return pyconvert(Vector{String}, pyimport("kernel_tuner.backends.julia_helper").detect_julia_gpu_backends())
+end
+
+export Tunable
+function Tunable(name::String, value)
+    return kt[].accuracy.Tunable(name, value)
+end
+
 end # module KernelTuner

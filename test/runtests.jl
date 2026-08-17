@@ -13,12 +13,15 @@ using PythonCall    # for the first test
 config = Dict(
     :backend => "default", # choose from default (auto-detected), CPU, and the available GPU backends
     :optimization_algorithms => ["random_sample", "genetic_algorithm", "simulated_annealing"], # choose from `strategy_map` in interface.py
+    :CI => false, # whether this test is running on the CI (skips heavy / GPU required tests)
 )
 for arg in ARGS
     if startswith(arg, "--backend=")
         config[:backend] = split(arg, "=")[2]
     elseif arg == "--optalgs="
         config[:optimization_algorithms] = split(split(arg, "=")[2], ",")
+    elseif arg == "--CI"
+        config[:CI] = true
     end
 end
 compiler_options=[]
@@ -235,6 +238,15 @@ end
             @test length(results[1]) <= max_fevals # number of configurations tested
             @test results[2] isa Dict
             @test "best_config" in keys(results[2])
+        end
+    end
+
+    # this is an intensive GPU test, don't run on CI or with CPU backend
+    if !config[:CI] && config[:backend] != "CPU"
+        @testset "Full integration test with the unmqr_tsmqr kernel" begin
+            include("integration_test.jl")
+            run_integration_test(compiler_options)
+            run_integration_test(compiler_options, insert_bad_data=true)
         end
     end
 end

@@ -34,7 +34,21 @@ end
 export run_kernel
 function run_kernel(args...; kwargs...)
     result = kt[].run_kernel(args...; kwargs...)
-    return pyconvert(Vector{Any}, result)  # convert to a Julia vector of Any
+    result_converted = Vector{Any}(undef, length(result))
+    for i in 1:length(result)
+        try
+            result_converted[i] = pyconvert(typeof(args[4][i]), result[i-1])
+        catch e
+            fallback = pyconvert(Any, result[i-1])
+            if fallback isa PythonCall.PyArray
+                result_converted[i] = pyconvert(Array, result[i-1])
+            else
+                result_converted[i] = fallback
+            end
+        end
+    end
+    return result_converted
+    # return pyconvert(Vector{Any}, result)  # convert to a Julia vector of Any
 end
 
 export detect_julia_gpu_backends

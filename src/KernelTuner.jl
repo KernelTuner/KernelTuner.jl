@@ -28,13 +28,18 @@ end
 export tune_kernel
 function tune_kernel(args...; kwargs...)
     res = kt[].tune_kernel(args...; kwargs...)
-    return pyconvert(Tuple{Tuple,Dict}, res)
+    c_res = pyconvert(Tuple{Vector{Dict},Dict}, res)
+    if length(res[1]) > 0
+        c_res[2]["best_config"] = pyconvert(Dict, c_res[2]["best_config"])
+    end
+    return c_res
 end
 
 export run_kernel
 function run_kernel(args...; kwargs...)
     result = kt[].run_kernel(args...; kwargs...)
     result_converted = Vector{Any}(undef, length(result))
+    # convert the processed resulting arguments back to their Julia types
     for i in 1:length(result)
         try
             result_converted[i] = pyconvert(typeof(args[4][i]), result[i-1])
@@ -48,7 +53,6 @@ function run_kernel(args...; kwargs...)
         end
     end
     return result_converted
-    # return pyconvert(Vector{Any}, result)  # convert to a Julia vector of Any
 end
 
 export detect_julia_gpu_backends

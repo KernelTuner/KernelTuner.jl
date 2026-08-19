@@ -137,7 +137,8 @@ function run_integration_test(compiler_options; insert_bad_data=false)
             verbose=true,
             answer=answer,
         )
-        @test results[1] isa Tuple
+        @test results[1] isa Vector
+        @test results[1][1] isa Dict
         @test results[2] isa Dict
         @test "best_config" in keys(results[2])
     end

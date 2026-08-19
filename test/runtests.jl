@@ -84,6 +84,8 @@ end
         # Verify the results
         answer = repeat(Float32[11, 22, 33, 44], outer=rsize)
         @test length(results) == length(arguments)
+        @test results isa Vector
+        @test results[1] isa Vector{Float32}
         @test length(results[1]) == length(arguments[1]) == length(answer)
         @test results[1] == answer
     end
@@ -126,8 +128,9 @@ end
         )
 
         # Verify the results
-        @test results[1] isa Tuple
+        @test results[1] isa Vector
         @test length(results[1]) == length(tune_params[1][2])  # number of configurations tested
+        @test results[1][1] isa Dict
         @test results[2] isa Dict
         @test "best_config" in keys(results[2])
     end
@@ -177,8 +180,9 @@ end
         )
 
         # Verify the results
-        @test results[1] isa Tuple
+        @test results[1] isa Vector
         @test length(results[1]) == length(tune_params[1][2]) * length(tune_params[2][2])  # number of configurations tested
+        @test results[1][1] isa Dict
         @test results[2] isa Dict
         @test "best_config" in keys(results[2])
     end
@@ -234,8 +238,9 @@ end
             )
 
             # Verify the results
-            @test results[1] isa Tuple
+            @test results[1] isa Vector
             @test length(results[1]) <= max_fevals # number of configurations tested
+            @test results[1][1] isa Dict
             @test results[2] isa Dict
             @test "best_config" in keys(results[2])
         end

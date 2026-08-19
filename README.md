@@ -9,7 +9,9 @@
 [![FairSoftware Badge](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F-green)](https://fair-software.eu)
 ---
 
-**KernelTuner.jl** brings Kernel Tuner's wide array of auto-tuning capabilities to the Julia ecosystem, providing the first full-fledged auto-tuning framework for Julia. For more information and [documentation](https://kerneltuner.github.io/kernel_tuner/stable/index.html), please see the [main Kernel Tuner repository](https://github.com/KernelTuner/kernel_tuner).
+**KernelTuner.jl** brings Kernel Tuner's wide array of auto-tuning capabilities to the Julia ecosystem, providing the first full-fledged auto-tuning framework for Julia. 
+As this is a wrapper around Kernel Tuner, versions numbers are not necesserily aligned with Kernel Tuner version numbers. 
+For more information and [documentation](https://kerneltuner.github.io/kernel_tuner/stable/index.html), please see the [main Kernel Tuner repository](https://github.com/KernelTuner/kernel_tuner).
 
 ## Installation & Quick Start
 To install, just run `] add KernelTuner` in a Julia >= 1.11 environment. You can then use KernelTuner with `using KernelTuner`, as seen in the [examples](#examples). 

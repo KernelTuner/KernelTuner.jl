@@ -4,6 +4,7 @@
 
 ---
 [![Build Status](https://github.com/KernelTuner/kerneltuner.jl/actions/workflows/Test.yml/badge.svg)](https://github.com/KernelTuner/kerneltuner.jl/actions/workflows/Test.yml)
+[![Downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fjuliapkgstats.com%2Fapi%2Fv1%2Fmonthly_downloads%2FKernelTuner&query=total_requests&suffix=%2Fmonth&label=Downloads)](https://juliapkgstats.com/pkg/KernelTuner)
 [![CodeCov Badge](https://codecov.io/gh/KernelTuner/kernel_tuner/branch/master/graph/badge.svg)](https://codecov.io/gh/KernelTuner/kernel_tuner)
 [![SonarCloud Badge](https://sonarcloud.io/api/project_badges/measure?project=KernelTuner_kernel_tuner&metric=alert_status)](https://sonarcloud.io/dashboard?id=KernelTuner_kernel_tuner)
 [![FairSoftware Badge](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F-green)](https://fair-software.eu)

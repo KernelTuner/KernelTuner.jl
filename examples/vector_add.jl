@@ -24,7 +24,7 @@ println(typeof(c))
 
 # Execution via Kernel tuner
 
-using KernelTuner
+import KernelTuner as kt
 
 # Defining a simple vector add kernel
 kernel_code = """
@@ -47,7 +47,7 @@ c = zeros(Float32, size)
 arguments = [c, a, b, size]
 
 # Run the kernel
-results = KernelTuner.run_kernel(
+results = kt.run_kernel(
     "vector_add!",
     kernel_code,
     (size,),

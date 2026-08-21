@@ -2,6 +2,8 @@
 
 using KernelAbstractions
 using CUDA
+import KernelTuner as kt
+
 backend = CUDABackend()
 N, M, R = 1024, 1024, 1024
 input1 = rand(Float32, N, R)
@@ -16,7 +18,7 @@ KernelAbstractions.synchronize(backend)
 input_args=[ input1, input2, output, N, R, M]
 tune_params = [("TILESIZE", [16, 32]),]
 restrictions = ["TILESIZE<=32", "TILESIZE>=16"]
-tune_kernel("brdkernel_large_v2!", "matmulkernel.jl", ["TILESIZE", "TILESIZE"],("N","M"),  input_args, tune_params; restrictions=restrictions)
+kt.tune_kernel("brdkernel_large_v2!", "matmulkernel.jl", ["TILESIZE", "TILESIZE"],("N","M"),  input_args, tune_params; restrictions=restrictions)
 
 
 # In certain cases, your input parameters are not static, but depend on the tunable parameters.
@@ -26,7 +28,4 @@ input_args=[ parameterized_input("TILESIZE", [16, 32], f(ts)=view(input1, 1:ts, 
             parameterized_input("TILESIZE", [16, 32], f(ts)=view(input2, 1:ts, 1:ts)), 
             parameterized_input("TILESIZE", [16, 32], f(ts)=view(output, 1:ts, 1:ts)), 
             N, R, M]
-tune_kernel("brdkernel_large_v2!", "matmulkernel.jl", ["TILESIZE", "TILESIZE"],("N","M"),  input_args, tune_params; restrictions=restrictions)
-
-
-
+kt.tune_kernel("brdkernel_large_v2!", "matmulkernel.jl", ["TILESIZE", "TILESIZE"],("N","M"),  input_args, tune_params; restrictions=restrictions)

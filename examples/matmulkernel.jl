@@ -65,5 +65,3 @@ using KernelAbstractions,  StaticArrays
         @inbounds output[I, J] = outval[1]
     end
 end
-
-

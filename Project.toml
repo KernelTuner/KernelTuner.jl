@@ -1,6 +1,6 @@
 name = "KernelTuner"
 uuid = "d8e2316b-1d0f-4d2d-8459-42354ee22310"
-version = "1.0.1"
+version = "1.1.0"
 authors = ["Floris-Jan Willemsen <6725103+fjwillemsen@users.noreply.github.com>, Evelyne Ringoot <110474206+evelyne-ringoot@users.noreply.github.com>"]
 
 [deps]
@@ -13,9 +13,9 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 CondaPkg = "0.2.36"
-KernelAbstractions = "0.9.41"
-PythonCall = "0.9.35"
+KernelAbstractions = "0.9.42"
+PythonCall = "0.9.36"
 Random = "1.11.0"
-StaticArrays = "1.9.19"
+StaticArrays = "1.9.22"
 Test = "1.11.0"
 julia = "1.11, 1.12, 1.13"

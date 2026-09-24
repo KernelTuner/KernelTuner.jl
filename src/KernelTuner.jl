@@ -65,4 +65,82 @@ function Tunable(name::String, value)
     return kt[].accuracy.Tunable(name, value)
 end
 
+export get_observer
+function get_observer(observer_type::String, args...; kwargs...)
+    local obs
+
+    # lazy-load the observer class based on the observer_type
+    if observer_type == "JuliaRuntimeObserver"
+        obs = pyimport("kernel_tuner.observers.julia").JuliaRuntimeObserver
+    elseif observer_type == "MetalObserver"
+        obs = pyimport("kernel_tuner.observers.metal").MetalObserver
+    elseif observer_type == "MetalContinuousObserver"
+        obs = pyimport("kernel_tuner.observers.metal").MetalContinuousObserver
+    elseif observer_type == "AMDSMIObserver"
+        obs = pyimport("kernel_tuner.observers.amd").AMDSMIObserver
+    elseif observer_type == "AMDSMIContinuousObserver"
+        obs = pyimport("kernel_tuner.observers.amd").AMDSMIContinuousObserver
+    elseif observer_type == "CompilerRuntimeObserver"
+        obs = pyimport("kernel_tuner.observers.compiler").CompilerRuntimeObserver
+    elseif observer_type == "CupyRuntimeObserver"
+        obs = pyimport("kernel_tuner.observers.cupy").CupyRuntimeObserver
+    elseif observer_type == "HipRuntimeObserver"
+        obs = pyimport("kernel_tuner.observers.hip").HipRuntimeObserver
+    elseif observer_type == "NCUObserver"
+        obs = pyimport("kernel_tuner.observers.ncu").NCUObserver
+    elseif observer_type == "NVMLObserver"
+        obs = pyimport("kernel_tuner.observers.nvml").NVMLObserver
+    elseif observer_type == "CudaRuntimeObserver"
+        obs = pyimport("kernel_tuner.observers.nvcuda").CudaRuntimeObserver
+    elseif observer_type == "OpenCLObserver"
+        obs = pyimport("kernel_tuner.observers.opencl").OpenCLObserver
+    elseif observer_type == "PMTObserver"
+        obs = pyimport("kernel_tuner.observers.pmt").PMTObserver
+    elseif observer_type == "PowerSensorObserver"
+        obs = pyimport("kernel_tuner.observers.powersensor").PowerSensorObserver
+    elseif observer_type == "PyCudaRuntimeObserver"
+        obs = pyimport("kernel_tuner.observers.pycuda").PyCudaRuntimeObserver
+    elseif observer_type == "RegisterObserver"
+        obs = pyimport("kernel_tuner.observers.register").RegisterObserver
+    elseif observer_type == "TegraObserver"
+        obs = pyimport("kernel_tuner.observers.tegra").TegraObserver
+    else
+        error("Unknown observer type: $observer_type")
+    end
+
+    # instantiate the observer with the provided arguments
+    return obs(args...; kwargs...)
+end
+
+export get_energy_observer_for_backend
+function get_energy_observer_for_backend(backend::String, args...; kwargs...)::Tuple{Any,Vector{String}}
+    local obs
+    backend = uppercase(backend)
+    if backend == "DEFAULT" || backend === nothing
+        backend = detect_julia_gpu_backends()[1]  # get the first available backend
+    end
+
+    # get the correct observer based on the backend
+    if backend == "METAL"
+        obs = get_observer("MetalObserver", args...; kwargs...)
+    elseif backend == "AMDGPU"
+        obs = get_observer("AMDSMIObserver", args...; kwargs...)
+    elseif backend == "CUDA"
+        obs = get_observer("NVMLObserver", args...; kwargs...)
+    else
+        error("No observer available for backend: $backend")
+    end
+
+    # get the selected observables from the observer
+    observables = pyconvert(Vector{String}, obs.observables)
+    if hasproperty(obs, :prefix)
+        prefix = pyconvert(String, obs.prefix)
+        if prefix != ""
+            observables = [prefix * "_" * ob for ob in observables]
+        end
+    end
+
+    return obs, observables
+end
+
 end # module KernelTuner

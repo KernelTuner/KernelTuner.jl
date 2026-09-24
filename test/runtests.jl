@@ -1,6 +1,7 @@
 using KernelTuner
 using Test
 using PythonCall    # for the first test
+using KernelTuner: get_observer
 
 # Uncomment for debugging
 # using CondaPkg
@@ -154,6 +155,12 @@ end
         end
         """
 
+        # set up cache
+        cache_file = "julia_test_cache.json"
+        cache_filepath = joinpath(pwd(), cache_file)
+        rm(cache_filepath; force=true)  # clear cache to avoid using old results
+        @test isfile(cache_filepath) == false
+
         # Set up the arguments and tunable parameters
         size = Int32(10000000)
         rsize = size ÷ 4  # Repeat the base array to reach the desired size
@@ -165,6 +172,16 @@ end
             ("work_per_thread", [1, 2, 4, 8]),
         ]
 
+        # set up observers for energy measurement
+        observers = []
+        energy_observer_fields = []
+        try
+            energy_observer, energy_observer_fields = get_energy_observer_for_backend(config[:backend])
+            observers = [energy_observer]
+        catch e
+            @warn "Failed to create energy observer for backend $config[:backend]: $e"
+        end
+
         # Tune the kernel
         results = KernelTuner.tune_kernel(
             "vector_add!",
@@ -172,11 +189,13 @@ end
             (size,),
             [c, a, b, size],
             tune_params,
+            observers=observers,
             grid_div_x=["block_size_x", "work_per_thread"],
             block_size_names=["block_size_x"],
             lang="Julia",
             answer=[repeat(Float32[11, 22, 33, 44], outer=rsize), nothing, nothing, nothing],
             compiler_options=compiler_options,
+            cache=cache_file,
         )
 
         # Verify the results
@@ -185,6 +204,27 @@ end
         @test results[1][1] isa Dict
         @test results[2] isa Dict
         @test "best_config" in keys(results[2])
+
+        # Check the contents of the results
+        for result in results[1]
+            # check that the tunable parameter keys are present in the result
+            for tp in tune_params
+                @test tp[1] in keys(result)
+            end
+
+            # check that the expected observer fields are present
+            if haskey(result, "time") && result["time"] !== nothing
+                @test result["time"] > 0
+                @test result["time"] < Inf
+                for field in energy_observer_fields
+                    @test field in keys(result)
+                end
+            end
+        end
+
+        # check and delete the cachefile
+        @test isfile(cache_filepath) == true
+        rm(cache_filepath; force=true)
     end
 
     @testset "Test the optimization algorithms" begin

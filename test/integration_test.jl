@@ -3,6 +3,7 @@
 import KernelTuner as kt
 using KernelTuner: Tunable
 using KernelTuner: detect_julia_gpu_backends
+using KernelTuner: get_energy_observer_for_backend
 
 # === Kernel script starts below ===
 
@@ -122,6 +123,21 @@ function run_integration_test(compiler_options; insert_bad_data=false)
             # @test occursin("Kernel result verification failed for", string(e))    # doesn't work for large arrays because string write buffer crashes
         end
     else
+        observers = []
+        energy_observer_fields = []
+        try
+            energy_observer, energy_observer_fields = get_energy_observer_for_backend(API)
+            observers = [energy_observer]
+        catch e
+            @warn "Failed to create energy observer for backend $API: $e"
+        end
+
+        # set up cache
+        cache_file = "julia_integration_test_cache.json"
+        cache_filepath = joinpath(pwd(), cache_file)
+        rm(cache_filepath; force=true)  # clear cache to avoid using old results
+        @test isfile(cache_filepath) == false
+
         results = kt.tune_kernel(
             "applyQorQt_unsafe_kernel2_2d_fused_A!",
             "test/unmqr_tsmqr.jl",
@@ -131,15 +147,39 @@ function run_integration_test(compiler_options; insert_bad_data=false)
             block_size_names=["TILESIZEMUL", "QRSPLIT"],      # block size (workgroup) dimensions
             grid_div_x=1, grid_div_y=1,                       # prevents division of the grid
             lang="Julia",
+            observers=observers,
             compiler_options=compiler_options,
             restrictions=restrictions,
             iterations=7,
             verbose=true,
             answer=answer,
+            cache=cache_file,
         )
         @test results[1] isa Vector
         @test results[1][1] isa Dict
         @test results[2] isa Dict
         @test "best_config" in keys(results[2])
+
+        # check for expected results
+        @test 0 < length(results[1]) <= length(tune_params[1][2]) * length(tune_params[2][2])  # number of configurations tested
+        for result in results[1]
+            # check that the tunable parameter keys are present in the result
+            for tp in tune_params
+                @test tp[1] in keys(result)
+            end
+
+            # check that the expected observer fields are present
+            if haskey(result, "time") && result["time"] !== nothing
+                @test result["time"] > 0
+                @test result["time"] < Inf
+                for field in energy_observer_fields
+                    @test field in keys(result)
+                end
+            end
+        end
+
+        # check and delete the cachefile
+        @test isfile(cache_filepath) == true
+        # rm(cache_filepath; force=true)
     end
 end

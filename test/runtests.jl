@@ -15,6 +15,7 @@ config = Dict(
     :backend => "default", # choose from default (auto-detected), CPU, and the available GPU backends
     :optimization_algorithms => ["random_sample", "genetic_algorithm", "simulated_annealing"], # choose from `strategy_map` in interface.py
     :CI => false, # whether this test is running on the CI (skips heavy / GPU required tests)
+    :minimal => false, # only runs the lightest tests (import, simple run_kernel, simple tune_kernel)
 )
 for arg in ARGS
     if startswith(arg, "--backend=")
@@ -23,6 +24,8 @@ for arg in ARGS
         config[:optimization_algorithms] = split(split(arg, "=")[2], ",")
     elseif arg == "--CI"
         config[:CI] = true
+    elseif arg == "--minimal"
+        config[:minimal] = true
     end
 end
 compiler_options=[]
@@ -136,101 +139,8 @@ end
         @test "best_config" in keys(results[2])
     end
 
-    @testset "Tune a tunable kernel" begin
-        # Defining a vector add kernel with work per thread parameter
-        kernel_code = """
-        using KernelAbstractions
-
-        @kernel function vector_add!(C, A, B, n, block_size_x,
-                             ::Val{WORK_PER_THREAD}) where {WORK_PER_THREAD}
-            tid = @index(Global)
-            first_i = (tid - 1) * WORK_PER_THREAD + 1
-
-            for offset in 0:(WORK_PER_THREAD - 1)
-                i = first_i + offset
-                if i <= n
-                    @inbounds C[i] = A[i] + B[i]
-                end
-            end
-        end
-        """
-
-        # set up cache
-        cache_file = "julia_test_cache.json"
-        cache_filepath = joinpath(pwd(), cache_file)
-        rm(cache_filepath; force=true)  # clear cache to avoid using old results
-        @test isfile(cache_filepath) == false
-
-        # Set up the arguments and tunable parameters
-        size = Int32(10000000)
-        rsize = size ÷ 4  # Repeat the base array to reach the desired size
-        a = repeat(Float32[1, 2, 3, 4], outer=rsize)
-        b = repeat(Float32[10, 20, 30, 40], outer=rsize)
-        c = zeros(Float32, size)
-        tune_params = [
-            ("block_size_x", [32, 64, 128, 256, 512]),
-            ("work_per_thread", [1, 2, 4, 8]),
-        ]
-
-        # set up observers for energy measurement
-        observers = []
-        energy_observer_fields = []
-        try
-            energy_observer, energy_observer_fields = get_energy_observer_for_backend(config[:backend])
-            observers = [energy_observer]
-        catch e
-            @warn "Failed to create energy observer for backend $config[:backend]: $e"
-        end
-
-        # Tune the kernel
-        results = KernelTuner.tune_kernel(
-            "vector_add!",
-            kernel_code,
-            (size,),
-            [c, a, b, size],
-            tune_params,
-            observers=observers,
-            grid_div_x=["block_size_x", "work_per_thread"],
-            block_size_names=["block_size_x"],
-            lang="Julia",
-            answer=[repeat(Float32[11, 22, 33, 44], outer=rsize), nothing, nothing, nothing],
-            compiler_options=compiler_options,
-            cache=cache_file,
-        )
-
-        # Verify the results
-        @test results[1] isa Vector
-        @test length(results[1]) == length(tune_params[1][2]) * length(tune_params[2][2])  # number of configurations tested
-        @test results[1][1] isa Dict
-        @test results[2] isa Dict
-        @test "best_config" in keys(results[2])
-
-        # Check the contents of the results
-        for result in results[1]
-            # check that the tunable parameter keys are present in the result
-            for tp in tune_params
-                @test tp[1] in keys(result)
-            end
-
-            # check that the expected observer fields are present
-            if haskey(result, "time") && result["time"] !== nothing
-                @test result["time"] > 0
-                @test result["time"] < Inf
-                for field in energy_observer_fields
-                    @test field in keys(result)
-                end
-            end
-        end
-
-        # check and delete the cachefile
-        @test isfile(cache_filepath) == true
-        rm(cache_filepath; force=true)
-    end
-
-    @testset "Test the optimization algorithms" begin
-        for alg in config[:optimization_algorithms]
-            @info "Testing optimization algorithm: $alg"
-
+    if !config[:minimal]
+        @testset "Tune a tunable kernel" begin
             # Defining a vector add kernel with work per thread parameter
             kernel_code = """
             using KernelAbstractions
@@ -249,6 +159,12 @@ end
             end
             """
 
+            # set up cache
+            cache_file = "julia_test_cache.json"
+            cache_filepath = joinpath(pwd(), cache_file)
+            rm(cache_filepath; force=true)  # clear cache to avoid using old results
+            @test isfile(cache_filepath) == false
+
             # Set up the arguments and tunable parameters
             size = Int32(10000000)
             rsize = size ÷ 4  # Repeat the base array to reach the desired size
@@ -259,7 +175,16 @@ end
                 ("block_size_x", [32, 64, 128, 256, 512]),
                 ("work_per_thread", [1, 2, 4, 8]),
             ]
-            max_fevals = (length(tune_params[1][2]) * length(tune_params[2][2])) - 1
+
+            # set up observers for energy measurement
+            observers = []
+            energy_observer_fields = []
+            try
+                energy_observer, energy_observer_fields = get_energy_observer_for_backend(config[:backend])
+                observers = [energy_observer]
+            catch e
+                @warn "Failed to create energy observer for backend $config[:backend]: $e"
+            end
 
             # Tune the kernel
             results = KernelTuner.tune_kernel(
@@ -268,26 +193,108 @@ end
                 (size,),
                 [c, a, b, size],
                 tune_params,
+                observers=observers,
                 grid_div_x=["block_size_x", "work_per_thread"],
                 block_size_names=["block_size_x"],
                 lang="Julia",
                 answer=[repeat(Float32[11, 22, 33, 44], outer=rsize), nothing, nothing, nothing],
                 compiler_options=compiler_options,
-                strategy=alg,
-                strategy_options=[("max_fevals", max_fevals)]
+                cache=cache_file,
             )
 
             # Verify the results
             @test results[1] isa Vector
-            @test length(results[1]) <= max_fevals # number of configurations tested
+            @test length(results[1]) == length(tune_params[1][2]) * length(tune_params[2][2])  # number of configurations tested
             @test results[1][1] isa Dict
             @test results[2] isa Dict
             @test "best_config" in keys(results[2])
+
+            # Check the contents of the results
+            for result in results[1]
+                # check that the tunable parameter keys are present in the result
+                for tp in tune_params
+                    @test tp[1] in keys(result)
+                end
+
+                # check that the expected observer fields are present
+                if haskey(result, "time") && result["time"] !== nothing
+                    @test result["time"] > 0
+                    @test result["time"] < Inf
+                    for field in energy_observer_fields
+                        @test field in keys(result)
+                    end
+                end
+            end
+
+            # check and delete the cachefile
+            @test isfile(cache_filepath) == true
+            rm(cache_filepath; force=true)
+        end
+    end
+
+    if !config[:minimal]
+        @testset "Test the optimization algorithms" begin
+            for alg in config[:optimization_algorithms]
+                @info "Testing optimization algorithm: $alg"
+
+                # Defining a vector add kernel with work per thread parameter
+                kernel_code = """
+                using KernelAbstractions
+
+                @kernel function vector_add!(C, A, B, n, block_size_x,
+                                    ::Val{WORK_PER_THREAD}) where {WORK_PER_THREAD}
+                    tid = @index(Global)
+                    first_i = (tid - 1) * WORK_PER_THREAD + 1
+
+                    for offset in 0:(WORK_PER_THREAD - 1)
+                        i = first_i + offset
+                        if i <= n
+                            @inbounds C[i] = A[i] + B[i]
+                        end
+                    end
+                end
+                """
+
+                # Set up the arguments and tunable parameters
+                size = Int32(10000000)
+                rsize = size ÷ 4  # Repeat the base array to reach the desired size
+                a = repeat(Float32[1, 2, 3, 4], outer=rsize)
+                b = repeat(Float32[10, 20, 30, 40], outer=rsize)
+                c = zeros(Float32, size)
+                tune_params = [
+                    ("block_size_x", [32, 64, 128, 256, 512]),
+                    ("work_per_thread", [1, 2, 4, 8]),
+                ]
+                max_fevals = (length(tune_params[1][2]) * length(tune_params[2][2])) - 1
+
+                # Tune the kernel
+                results = KernelTuner.tune_kernel(
+                    "vector_add!",
+                    kernel_code,
+                    (size,),
+                    [c, a, b, size],
+                    tune_params,
+                    grid_div_x=["block_size_x", "work_per_thread"],
+                    block_size_names=["block_size_x"],
+                    lang="Julia",
+                    answer=[repeat(Float32[11, 22, 33, 44], outer=rsize), nothing, nothing, nothing],
+                    compiler_options=compiler_options,
+                    strategy=alg,
+                    strategy_options=[("max_fevals", max_fevals)]
+                )
+
+                # Verify the results
+                @test results[1] isa Vector
+                @test length(results[1]) <= max_fevals # number of configurations tested
+                @test results[1][1] isa Dict
+                @test results[2] isa Dict
+                @test "best_config" in keys(results[2])
+            end
         end
     end
 
     # this is an intensive GPU test, don't run on CI or with CPU backend
-    if !config[:CI] && config[:backend] != "CPU"
+    if !config[:minimal] && !config[:CI] && config[:backend] != "CPU"
         @testset "Full integration test with the unmqr_tsmqr kernel" begin
             include("integration_test.jl")
             run_integration_test(compiler_options)

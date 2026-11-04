@@ -183,7 +183,7 @@ end
                 energy_observer, energy_observer_fields = get_energy_observer_for_backend(config[:backend])
                 observers = [energy_observer]
             catch e
-                @warn "Failed to create energy observer for backend $config[:backend]: $e"
+                @error "Failed to create energy observer for backend $config[:backend]: $e"
             end
 
             # Tune the kernel

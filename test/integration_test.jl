@@ -129,7 +129,7 @@ function run_integration_test(compiler_options; insert_bad_data=false)
             energy_observer, energy_observer_fields = get_energy_observer_for_backend(API)
             observers = [energy_observer]
         catch e
-            @warn "Failed to create energy observer for backend $API: $e"
+            @error "Failed to create energy observer for backend $API: $e"
         end
 
         # set up cache

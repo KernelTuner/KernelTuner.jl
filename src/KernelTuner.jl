@@ -19,9 +19,37 @@ function __init__()
     end
 end
 
+# PythonCall converts Julia numbers to plain Python `int`/`float`, which come back into Julia as Int64/Float64
+# (e.g. Float32 → float → Float64, which Metal cannot compile). Wrapping them as NumPy scalars of the matching
+# width preserves the exact Julia type on its way through Kernel Tuner.
+const numpy_scalar_types = Dict{DataType,String}(
+    Float16 => "float16", Float32 => "float32", Float64 => "float64",
+    Int8 => "int8", Int16 => "int16", Int32 => "int32", Int64 => "int64",
+    UInt8 => "uint8", UInt16 => "uint16", UInt32 => "uint32", UInt64 => "uint64",
+)  # Bool is left out on purpose: Python's `bool` already round-trips to Bool, `numpy.bool_` does not
+
+to_numpy_scalar(x) = x
+function to_numpy_scalar(x::Number)
+    name = get(numpy_scalar_types, typeof(x), nothing)
+    name === nothing && return x
+    return getproperty(pyimport("numpy"), Symbol(name))(x)
+end
+
+# Apply `to_numpy_scalar` to the kernel arguments, passed either as 4th positional argument or as `arguments` keyword.
+function convert_kernel_arguments(args, kwargs)
+    if length(args) >= 4
+        args = (args[1:3]..., map(to_numpy_scalar, args[4]), args[5:end]...)
+    end
+    if haskey(kwargs, :arguments)
+        kwargs = merge(NamedTuple(kwargs), (arguments=map(to_numpy_scalar, kwargs[:arguments]),))
+    end
+    return args, kwargs
+end
+
 # wrap the Python functions
 export tune_kernel
 function tune_kernel(args...; kwargs...)
+    args, kwargs = convert_kernel_arguments(args, kwargs)
     res = kt[].tune_kernel(args...; kwargs...)
     c_res = pyconvert(Tuple{Vector{Dict},Dict}, res)
     if length(res[1]) > 0
@@ -32,7 +60,8 @@ end
 
 export run_kernel
 function run_kernel(args...; kwargs...)
-    result = kt[].run_kernel(args...; kwargs...)
+    py_args, py_kwargs = convert_kernel_arguments(args, kwargs)
+    result = kt[].run_kernel(py_args...; py_kwargs...)
     result_converted = Vector{Any}(undef, length(result))
     # convert the processed resulting arguments back to their Julia types
     for i in 1:length(result)

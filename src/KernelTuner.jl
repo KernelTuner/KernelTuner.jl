@@ -126,6 +126,11 @@ function get_energy_observer_for_backend(backend::String, args...; kwargs...)::T
     elseif backend == "AMDGPU"
         obs = get_observer("AMDSMIObserver", args...; kwargs...)
     elseif backend == "CUDA"
+        CondaPkg.add_pip("pynvml"; version=">=11.4.1")   # TODO see if we can move to CUDA.jl.NVML instead
+        if length(args) == 0 && !haskey(kwargs, :observables)
+            # set default observables if none are provided
+            args = [["power_readings", "nvml_power", "nvml_energy", "core_freq", "mem_freq", "temperature"]]
+        end
         obs = get_observer("NVMLObserver", args...; kwargs...)
     else
         error("No observer available for backend: $backend")

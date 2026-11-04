@@ -133,9 +133,9 @@ function get_energy_observer_for_backend(backend::String, args...; kwargs...)::T
 
     # get the selected observables from the observer
     observables = pyconvert(Vector{String}, obs.observables)
-    if hasproperty(obs, :prefix)
-        prefix = pyconvert(String, obs.prefix)
-        if prefix != ""
+    if hasproperty(obs, :prefix) && obs.prefix !== nothing
+        prefix = pyconvert(Union{String,Nothing}, obs.prefix)
+        if prefix !== nothing && prefix != ""
             observables = [prefix * "_" * ob for ob in observables]
         end
     end

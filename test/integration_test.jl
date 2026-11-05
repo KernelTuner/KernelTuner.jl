@@ -73,6 +73,10 @@ function run_integration_test(compiler_options; insert_bad_data=false)
                 params[1] = ("TILESIZE", ts)  # override TILESIZE parameter as it does affect the outcome
                 params[2] = ("TILEHEIGHT", th)  # override TILEHEIGHT parameter as it does affect the outcome
                 params[4] = ("QRSPLIT", qs)  # override QRSPLIT parameter as it does affect the outcome
+                tsm = params[3][2]
+                params[5] = ("FACTORQR", th ÷ qs)  # derived parameters must satisfy the restrictions, otherwise rows / tau entries are skipped
+                params[6] = ("THREADFACTOR", tsm * qs > th ? 1 : th ÷ (tsm * qs))
+                params[7] = ("THREADFACTOR2", tsm * qs > ts ? 1 : ts ÷ (tsm * qs))
                 params[end] = ("TILEBLOCK", ts ÷ qs)  # override TILEBLOCK parameter as it does affect the outcome and is dependent on TILESIZE and QRSPLIT
                 result = kt.run_kernel(
                     "applyQorQt_unsafe_kernel2_2d_fused_A!",
@@ -81,7 +85,6 @@ function run_integration_test(compiler_options; insert_bad_data=false)
                     [deepcopy(arg[ts]) for arg in args_list],
                     params,
                     block_size_names=["TILESIZEMUL", "QRSPLIT"],      # block size (workgroup) dimensions
-                    grid_div_x=1, grid_div_y=1,                       # prevents division of the grid
                     lang="Julia",
                     compiler_options=compiler_options,
                 )
@@ -109,18 +112,18 @@ function run_integration_test(compiler_options; insert_bad_data=false)
                 args,
                 tune_params,
                 block_size_names=["TILESIZEMUL", "QRSPLIT"],      # block size (workgroup) dimensions
-                grid_div_x=1, grid_div_y=1,                       # prevents division of the grid
                 lang="Julia",
                 compiler_options=compiler_options,
                 restrictions=restrictions,
                 iterations=7,
-                verbose=true,
+                verbose=false,
                 answer=answer,
             )
             @test false # fail if no error is thrown
         catch e
             @test nameof(typeof(e)) == :PyException
             # @test occursin("Kernel result verification failed for", string(e))    # doesn't work for large arrays because string write buffer crashes
+            println("Test passed: Caught expected exception: ", e)
         end
     else
         observers = []
@@ -145,7 +148,6 @@ function run_integration_test(compiler_options; insert_bad_data=false)
             args,
             tune_params,
             block_size_names=["TILESIZEMUL", "QRSPLIT"],      # block size (workgroup) dimensions
-            grid_div_x=1, grid_div_y=1,                       # prevents division of the grid
             lang="Julia",
             observers=observers,
             compiler_options=compiler_options,

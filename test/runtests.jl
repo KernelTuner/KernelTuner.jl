@@ -124,7 +124,6 @@ end
             (size,),
             [c, a, b, size],
             tune_params,
-            grid_div_x=1, grid_div_y=1,
             block_size_names=["block_size_x"],
             lang="Julia",
             answer=[repeat(Float32[11, 22, 33, 44], outer=rsize), nothing, nothing, nothing],

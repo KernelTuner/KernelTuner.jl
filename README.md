@@ -92,7 +92,6 @@ results = KernelTuner.tune_kernel(
     (size,),
     [c, a, b, size],
     tune_params,
-    grid_div_x=1, grid_div_y=1,
     block_size_names=["block_size_x"],
     lang="Julia",
     compiler_options=["CPU"],

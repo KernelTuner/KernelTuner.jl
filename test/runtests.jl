@@ -36,6 +36,11 @@ else
     compiler_options = [config[:backend]]
 end
 
+if count(f -> startswith(f, "temp_") && endswith(f, ".jl") && isfile(f), readdir()) > 0
+    @warn "Found temporary files from a previous test run. Deleting now."
+    rm.(filter(f -> startswith(f, "temp_") && endswith(f, ".jl") && isfile(f), readdir()); force=true)
+end
+
 
 @testset "KernelTuner.jl" begin
 

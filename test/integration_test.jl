@@ -104,6 +104,8 @@ function run_integration_test(compiler_options; insert_bad_data=false)
 
     # tune the kernel
     if insert_bad_data
+        # check if there are no temporary files left from other runs
+        num_temp_files_start = count(f -> startswith(f, "temp_") && endswith(f, ".jl") && isfile(f), readdir())
         try
             kt.tune_kernel(
                 "applyQorQt_unsafe_kernel2_2d_fused_A!",
@@ -123,7 +125,14 @@ function run_integration_test(compiler_options; insert_bad_data=false)
         catch e
             @test nameof(typeof(e)) == :PyException
             # @test occursin("Kernel result verification failed for", string(e))    # doesn't work for large arrays because string write buffer crashes
-            println("Test passed: Caught expected exception: ", e)
+            println("Test of invalid data passed with expected exception, automatically deleting temporary file. Caught expected exception: ", e)
+            if num_temp_files_start == 0
+                if count(f -> startswith(f, "temp_") && endswith(f, ".jl") && isfile(f), readdir()) == 1
+                    rm.(filter(f -> startswith(f, "temp_") && endswith(f, ".jl") && isfile(f), readdir()); force=true)
+                else
+                    @warn "Temporary file was not deleted after the test, and there were no temporary files before the test. Please check if the temporary file is still present and delete it manually."
+                end
+            end
         end
     else
         observers = []

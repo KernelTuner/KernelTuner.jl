@@ -143,6 +143,21 @@ end
         @test "best_config" in keys(results[2])
     end
 
+    @testset "Interrupts" begin
+        # Kernel Tuner stops with a KeyboardInterrupt when interrupted, which is raised as an InterruptException in Julia
+        namespace = pydict()
+        pyexec("""
+        def interrupted(*args, **kwargs):
+            raise KeyboardInterrupt()
+        def failed(*args, **kwargs):
+            raise ValueError("not an interrupt")
+        """, namespace)
+        interrupted, failed = namespace["interrupted"], namespace["failed"]
+        @test_throws InterruptException KernelTuner.call_kernel_tuner(interrupted, 1; a=2)
+        @test_throws PyException KernelTuner.call_kernel_tuner(failed)
+        @test pyconvert(Int, KernelTuner.call_kernel_tuner(pybuiltins.len, pylist([1, 2]))) == 2
+    end
+
     @testset "Julia-native metrics and AccuracyObserver" begin
         # metrics are converted to an ordered Python dict, Julia functions receive a Julia Dict
         metrics = KernelTuner.convert_metrics([

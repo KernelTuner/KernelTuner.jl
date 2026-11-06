@@ -84,6 +84,19 @@ function convert_metrics(metrics::Union{AbstractVector{<:Pair},AbstractDict})
 end
 convert_metrics(metrics) = metrics    # already a Python dict (or `nothing`)
 
+# Kernel Tuner stops tuning with a KeyboardInterrupt when it is interrupted (e.g. Ctrl-C or interrupting a notebook cell),
+# which is raised in Julia as an InterruptException, like any other interrupt.
+is_keyboard_interrupt(e) = e isa PyException && pyissubclass(e.t, pybuiltins.KeyboardInterrupt)
+
+function call_kernel_tuner(f, args...; kwargs...)
+    try
+        return f(args...; kwargs...)
+    catch e
+        is_keyboard_interrupt(e) && throw(InterruptException())
+        rethrow()
+    end
+end
+
 # wrap the Python functions
 export tune_kernel
 function tune_kernel(args...; kwargs...)
@@ -91,14 +104,14 @@ function tune_kernel(args...; kwargs...)
     if haskey(kwargs, :metrics)
         kwargs = merge(NamedTuple(kwargs), (metrics=convert_metrics(kwargs[:metrics]),))
     end
-    results, env = kt[].tune_kernel(args...; kwargs...)
+    results, env = call_kernel_tuner(kt[].tune_kernel, args...; kwargs...)
     return Dict{String,Any}[params_to_julia(r) for r in results], params_to_julia(env)
 end
 
 export run_kernel
 function run_kernel(args...; kwargs...)
     py_args, py_kwargs = convert_kernel_arguments(args, kwargs)
-    result = kt[].run_kernel(py_args...; py_kwargs...)
+    result = call_kernel_tuner(kt[].run_kernel, py_args...; py_kwargs...)
     result_converted = Vector{Any}(undef, length(result))
     # convert the processed resulting arguments back to their Julia types
     for i in 1:length(result)

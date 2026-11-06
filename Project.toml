@@ -18,6 +18,7 @@ Metal = "dde4c033-4e86-420c-a63e-0dd931031962"
 [compat]
 CondaPkg = "^0.2.36"
 KernelAbstractions = "^0.9.42, 0.10"
+Metal = "1.12.0"
 PythonCall = "^0.9.36"
 Random = "1"
 StaticArrays = "^1.9.22"

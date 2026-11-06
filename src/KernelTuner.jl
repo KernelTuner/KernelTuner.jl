@@ -51,10 +51,12 @@ end
 from_python(x::Py) = from_python(pyconvert(Any, x))
 from_python(x::PythonCall.PyArray) = Array(x)
 from_python(x::PythonCall.PyList) = [from_python(v) for v in x]
+from_python(x::PythonCall.PyDict) = params_to_julia(x)
 from_python(x) = x
 
-# The parameters of a configuration (and its results so far) as a Julia `Dict{String,Any}`.
-params_to_julia(params) = Dict{String,Any}(pyconvert(String, k) => from_python(v) for (k, v) in Py(params).items())
+# A Python dict with string keys (e.g. the parameters and results of a configuration) as a Julia `Dict{String,Any}`.
+# The values are converted one by one, as `pyconvert(Dict, ...)` would turn integer parameters into Float64.
+params_to_julia(params) = Dict{String,Any}(pyconvert(String, pystr(k)) => from_python(v) for (k, v) in Py(params).items())
 
 """
     convert_metrics(metrics)
@@ -89,12 +91,8 @@ function tune_kernel(args...; kwargs...)
     if haskey(kwargs, :metrics)
         kwargs = merge(NamedTuple(kwargs), (metrics=convert_metrics(kwargs[:metrics]),))
     end
-    res = kt[].tune_kernel(args...; kwargs...)
-    c_res = pyconvert(Tuple{Vector{Dict},Dict}, res)
-    if length(res[1]) > 0
-        c_res[2]["best_config"] = pyconvert(Dict, c_res[2]["best_config"])
-    end
-    return c_res
+    results, env = kt[].tune_kernel(args...; kwargs...)
+    return Dict{String,Any}[params_to_julia(r) for r in results], params_to_julia(env)
 end
 
 export run_kernel

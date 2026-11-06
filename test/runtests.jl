@@ -245,7 +245,9 @@ end
                 # check that the tunable parameter keys are present in the result
                 for tp in tune_params
                     @test tp[1] in keys(result)
+                    @test result[tp[1]] isa Int   # integer parameters stay integers on their way back from Python
                 end
+                @test result["times"] isa Vector{Float64}
 
                 # check that the expected observer fields are present
                 if haskey(result, "time") && result["time"] !== nothing

@@ -46,10 +46,49 @@ function convert_kernel_arguments(args, kwargs)
     return args, kwargs
 end
 
+# Convert a value coming from Python into its Julia counterpart (numbers, strings, arrays, wrapped Julia objects).
+# PythonCall may already have wrapped the value (e.g. as `PyArray` or `PyDict`), so those are handled as well.
+from_python(x::Py) = from_python(pyconvert(Any, x))
+from_python(x::PythonCall.PyArray) = Array(x)
+from_python(x::PythonCall.PyList) = [from_python(v) for v in x]
+from_python(x) = x
+
+# The parameters of a configuration (and its results so far) as a Julia `Dict{String,Any}`.
+params_to_julia(params) = Dict{String,Any}(pyconvert(String, k) => from_python(v) for (k, v) in Py(params).items())
+
+"""
+    convert_metrics(metrics)
+
+Converts Julia-style user-defined metrics to the ordered Python `dict` that Kernel Tuner expects.
+`metrics` is a vector of `name => metric` pairs (or any other `AbstractDict`), where each metric is either
+- a string expression in terms of the tunable parameters and earlier results, e.g. `"1e-6 * n / (time / 1e3)"`, or
+- a Julia function that takes the configuration as a `Dict{String,Any}`, e.g. `p -> p["block_size_x"] * p["block_size_y"]`.
+
+Metrics are computed in order, so later metrics can use earlier ones. Use a vector of pairs to keep that order,
+as the order of a `Dict` is not defined.
+"""
+function convert_metrics(metrics::Union{AbstractVector{<:Pair},AbstractDict})
+    py_metrics = pydict()
+    for (name, metric) in metrics
+        if metric isa AbstractString
+            py_metrics[string(name)] = metric
+        elseif metric isa Base.Callable
+            py_metrics[string(name)] = params -> metric(params_to_julia(params))
+        else
+            error("Metric \"$name\" should be a string expression or a function, got $(typeof(metric))")
+        end
+    end
+    return py_metrics
+end
+convert_metrics(metrics) = metrics    # already a Python dict (or `nothing`)
+
 # wrap the Python functions
 export tune_kernel
 function tune_kernel(args...; kwargs...)
     args, kwargs = convert_kernel_arguments(args, kwargs)
+    if haskey(kwargs, :metrics)
+        kwargs = merge(NamedTuple(kwargs), (metrics=convert_metrics(kwargs[:metrics]),))
+    end
     res = kt[].tune_kernel(args...; kwargs...)
     c_res = pyconvert(Tuple{Vector{Dict},Dict}, res)
     if length(res[1]) > 0
@@ -84,9 +123,25 @@ function detect_julia_gpu_backends()
     return pyconvert(Vector{String}, pyimport("kernel_tuner.backends.julia_helper").detect_julia_gpu_backends())
 end
 
-export Tunable
+export Tunable, AccuracyObserver
 function Tunable(name::String, value)
     return kt[].accuracy.Tunable(name, value)
+end
+
+"""
+    AccuracyObserver(metric="RMSE"; key="error", atol=1e-8)
+
+Observer that compares the output of each configuration to the `answer` passed to `tune_kernel`, and stores
+the largest error over all output arguments under `key` in the results. When this observer is used, the default
+output verification is skipped, so configurations with a large error are recorded instead of stopping the tuning.
+
+`metric` is either the name of an error metric known to Kernel Tuner (such as `"RMSE"`, `"MAE"`, `"absolute error"`
+or `"relative error"`; `atol` prevents division by zero in relative metrics), or a Julia function
+`(answer, output) -> error` that receives both as Julia arrays.
+"""
+function AccuracyObserver(metric::Union{AbstractString,Base.Callable}="RMSE"; key::AbstractString="error", atol::Real=1e-8)
+    py_metric = metric isa AbstractString ? metric : (answer, output) -> metric(from_python(answer), from_python(output))
+    return pyimport("kernel_tuner.accuracy").AccuracyObserver(py_metric, key; atol=atol)
 end
 
 export get_observer

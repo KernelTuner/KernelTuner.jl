@@ -143,6 +143,33 @@ end
         @test "best_config" in keys(results[2])
     end
 
+    @testset "Julia-native metrics and AccuracyObserver" begin
+        # metrics are converted to an ordered Python dict, Julia functions receive a Julia Dict
+        metrics = KernelTuner.convert_metrics([
+            "GFLOP/s" => "1.0 / (time / 1e3)",
+            "work-items" => p -> p["block_size_x"] * p["block_size_y"],
+            "double" => p -> 2 * p["work-items"],
+        ])
+        @test pyconvert(Vector{String}, pylist(metrics.keys())) == ["GFLOP/s", "work-items", "double"]
+        params = pydict(Dict("time" => 2.0, "block_size_x" => 32, "block_size_y" => 4, "times" => pylist([1.0, 3.0])))
+        params = pyimport("kernel_tuner.util").process_metrics(params, metrics)
+        @test pyconvert(Int, params["work-items"]) == 128
+        @test pyconvert(Int, params["double"]) == 256
+        @test pyconvert(Float64, params["GFLOP/s"]) ≈ 500.0
+        @test KernelTuner.params_to_julia(params)["times"] == [1.0, 3.0]
+        @test_throws ErrorException KernelTuner.convert_metrics(["bad" => 42])
+
+        # AccuracyObserver with a named metric and with a Julia function
+        np = pyimport("numpy")
+        answers, outputs = pylist([np.array([1.0, 2.0]), nothing]), pylist([np.array([1.0, 4.0]), np.array([0.0, 0.0])])
+        obs = AccuracyObserver("absolute error")
+        obs.process_output(answers, outputs)
+        @test pyconvert(Float64, obs.get_results()["error"]) ≈ 1.0   # mean absolute error of [0, 2]
+        obs = AccuracyObserver((a, o) -> (@assert a isa Array && o isa Array; maximum(abs.(a .- o))); key="max_error")
+        obs.process_output(answers, outputs)
+        @test pyconvert(Float64, obs.get_results()["max_error"]) ≈ 2.0
+    end
+
     if !config[:minimal]
         @testset "Tune a tunable kernel" begin
             # Defining a vector add kernel with work per thread parameter

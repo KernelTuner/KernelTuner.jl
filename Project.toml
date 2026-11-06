@@ -16,6 +16,7 @@ CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 Metal = "dde4c033-4e86-420c-a63e-0dd931031962"
 
 [compat]
+CUDA = "6.5.0"
 CondaPkg = "^0.2.36"
 KernelAbstractions = "^0.9.42, 0.10"
 PythonCall = "^0.9.36"

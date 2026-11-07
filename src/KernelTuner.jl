@@ -229,6 +229,11 @@ function get_energy_observer_for_backend(backend::String, args...; kwargs...)::T
 
     # get the selected observables from the observer
     observables = pyconvert(Vector{String}, obs.observables)
+    # the NVML observers hand the power observables (e.g. "nvml_power") to their continuous observer,
+    # and leave them out of their own observables, even though they are in the results
+    if pyhasattr(obs, "continuous_observer") && pyhasattr(obs.continuous_observer, "observables")
+        observables = unique([pyconvert(Vector{String}, obs.continuous_observer.observables); observables])
+    end
     if hasproperty(obs, :prefix) && obs.prefix !== nothing
         prefix = pyconvert(Union{String,Nothing}, obs.prefix)
         if prefix !== nothing && prefix != ""

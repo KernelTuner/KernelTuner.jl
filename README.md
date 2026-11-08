@@ -12,7 +12,10 @@
 
 **KernelTuner.jl** brings Kernel Tuner's wide array of auto-tuning capabilities to the Julia ecosystem, providing the first full-fledged auto-tuning framework for Julia. 
 As this is a wrapper around Kernel Tuner, versions numbers are not necesserily aligned with Kernel Tuner version numbers. 
-For more information and [documentation](https://kerneltuner.github.io/kernel_tuner/stable/index.html), please see the [main Kernel Tuner repository](https://github.com/KernelTuner/kernel_tuner).
+For more information and [documentation](https://kerneltuner.github.io/kernel_tuner/stable/index.html), please see the [main Kernel Tuner repository](https://github.com/KernelTuner/kernel_tuner). 
+
+[!NOTE]
+This is a new package, please provide feedback through [discussions](https://github.com/KernelTuner/KernelTuner.jl/discussions) and [issues](https://github.com/KernelTuner/KernelTuner.jl/issues) to enhance the experience. Thank you for using KernelTuner.jl!
 
 ## Installation & Quick Start
 To install, just run `] add KernelTuner` in a Julia >= 1.11 environment. You can then use KernelTuner with `using KernelTuner`, as seen in the [examples](#examples). 
@@ -176,7 +179,7 @@ Following this, `cd` to the local path of this repository, in `CondaPkg.toml` co
 Now enter into Julia interactive mode with `julia --project`, run `using Pkg; Pkg.instantiate()`, and if necessary add any packages you need (such as CUDA or other backends). 
 Finally, run `julia --project test/runtests.jl` (optionally with a backend of your choice such as `--backend=CPU`) to test the installation. 
 
-When contributing to KernelTuner.jl, always check the existing issues and discussions before opening a new one. 
+When contributing to KernelTuner.jl, always check the existing [issues](https://github.com/KernelTuner/KernelTuner.jl/issues) and [discussions](https://github.com/KernelTuner/KernelTuner.jl/discussions) before opening a new one. 
 Before submitting a pull request, ensure all tests pass, and if necessary changes were made to Kernel Tuner, also ensure all tests pass there using `nox` (see the Kernel Tuner developer documentation for the options to use with `nox`, e.g. selecting which GPU platforms to test for). 
 
 ### Requirements

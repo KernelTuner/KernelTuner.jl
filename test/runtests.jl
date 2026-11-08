@@ -345,8 +345,7 @@ end
     if !config[:minimal] && !config[:CI] && config[:backend] != "CPU"
         @testset "Full integration test with the unmqr_tsmqr kernel" begin
             include("integration_test.jl")
-            run_integration_test(compiler_options)
-            run_integration_test(compiler_options, insert_bad_data=true)
+            run_integration_test(compiler_options)  # tunes with valid answers, then checks that invalid answers fail
         end
     end
 end

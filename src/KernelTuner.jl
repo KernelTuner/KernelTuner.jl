@@ -215,7 +215,7 @@ function get_energy_observer_for_backend(backend::String, args...; kwargs...)::T
     # get the correct observer based on the backend
     if backend == "METAL"
         obs = get_observer("MetalObserver", args...; kwargs...)
-    elseif backend == "AMDGPU"
+    elseif backend == "AMDGPU" || backend == "AMD" || backend == "ROCM"
         obs = get_observer("AMDSMIObserver", args...; kwargs...)
     elseif backend == "CUDA"
         if length(args) == 0 && !haskey(kwargs, :observables)

@@ -59,7 +59,9 @@ function run_integration_test(compiler_options)
     eltype = Float32
     size_i = N
     A = randn!(GlobalProgramRNG, KernelAbstractions.zeros(backend, eltype, size_i, size_i))
-    Tau_full = randn!(GlobalProgramRNG, KernelAbstractions.zeros(backend, eltype, maximum(TILESIZE), Int(size_i / minimum(TILESIZE))))  # full Tau array from which tunable views will be created, ensures that the same randomly generated data is used for all tunable configurations
+    # full Tau array from which tunable views will be created, ensures that the same randomly generated data is used for all tunable configurations
+    # scaled to the magnitude of real reflector coefficients (tau = 2 / (1 + norm(v)^2)), as the repeated updates overflow to NaN with unscaled values
+    Tau_full = eltype(0.01) .* randn!(GlobalProgramRNG, KernelAbstractions.zeros(backend, eltype, maximum(TILESIZE), Int(size_i / minimum(TILESIZE))))
     Tau = TS -> view(Tau_full, 1:TS, 1:Int(size_i/TS))
     args_list = [
         Dict(TS => view(A, 1:512, (TS+1):size(A, 2)) for TS in TILESIZE),
@@ -88,7 +90,7 @@ function run_integration_test(compiler_options)
         )
         Ar = result[1]
         @test size(Ar) == size(args_list[1][ts])
-        @test !all(isnan.(Ar))    # check if the answer is not only NaNs
+        @test !any(isnan, Ar)     # NaNs would be considered equal during verification, hiding differences
         @test Ar != args_list[1][ts]  # sanity check to make sure the kernel did something useful
         get!(get!(answers, qs, Dict()), th, Dict())[ts] = Ar
     end

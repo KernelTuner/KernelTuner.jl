@@ -23,6 +23,7 @@ To install, just run `] add KernelTuner` in a Julia >= 1.11 environment. You can
 ## Table of Contents <!-- omit from toc -->
 - [](#)
 - [Installation \& Quick Start](#installation--quick-start)
+- [Feature Status \& Support](#feature-status--support)
 - [Examples](#examples)
 - [Additional information](#additional-information)
   - [GPU kernel writing](#gpu-kernel-writing)
@@ -30,6 +31,19 @@ To install, just run `] add KernelTuner` in a Julia >= 1.11 environment. You can
   - [Notes](#notes)
 - [Development, Testing \& Contributing](#development-testing--contributing)
   - [Requirements](#requirements)
+
+
+## Feature Status & Support
+
+|                                           | CUDA.jl | AMDGPU.jl | Metal.jl | oneAPI.jl      |
+|-------------------------------------------|---------|-----------|----------|----------------|
+| Running & Tuning                          | ✅      | ✅        | ✅       | ✅             |
+| Observers                                 | ✅      | ✅        | ✅       | ✅             |
+| Optimization Algorithms                   | ✅      | ✅        | ✅       | ✅             |
+| Energy measurements                       | ✅      | ✅        | ✅       | ⏳ coming soon |
+| Fully tested (each minor version release) | ✅      | ✅        | ✅       | ✅             |
+
+Each release is tested on the latest Ubuntu and macOS CI runners against all supported Julia versions, as well as on dedicated hardware with GPUs available against the current latest Julia version. Windows is currently not tested against. 
 
 ## Examples
 Given the following simple example:

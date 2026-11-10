@@ -14,8 +14,8 @@
 As this is a wrapper around Kernel Tuner, versions numbers are not necesserily aligned with Kernel Tuner version numbers. 
 For more information and [documentation](https://kerneltuner.github.io/kernel_tuner/stable/index.html), please see the [main Kernel Tuner repository](https://github.com/KernelTuner/kernel_tuner). 
 
-[!NOTE]
-This is a new package, please provide feedback through [discussions](https://github.com/KernelTuner/KernelTuner.jl/discussions) and [issues](https://github.com/KernelTuner/KernelTuner.jl/issues) to enhance the experience. Thank you for using KernelTuner.jl!
+> [!NOTE]
+> This is a new package, please provide feedback through [discussions](https://github.com/KernelTuner/KernelTuner.jl/discussions) and [issues](https://github.com/KernelTuner/KernelTuner.jl/issues) to enhance the experience. Thank you for using KernelTuner.jl!
 
 ## Installation & Quick Start
 To install, just run `] add KernelTuner` in a Julia >= 1.11 environment. You can then use KernelTuner with `using KernelTuner`, as seen in the [examples](#examples). 

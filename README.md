@@ -41,7 +41,7 @@ To install, just run `] add KernelTuner` in a Julia >= 1.11 environment. You can
 | Observers                                 | ✅      | ✅        | ✅       | ✅             |
 | Optimization Algorithms                   | ✅      | ✅        | ✅       | ✅             |
 | Energy measurements                       | ✅      | ✅        | ✅       | ⏳ coming soon |
-| Fully tested (each minor version release) | ✅      | ✅        | ✅       | ✅             |
+| Fully tested (each minor version release) | ✅      | ✅        | ✅       | ⏳ pending     |
 
 Each release is tested on the latest Ubuntu and macOS CI runners against all supported Julia versions, as well as on dedicated hardware with GPUs available against the current latest Julia version. Windows is currently not tested against. 
 

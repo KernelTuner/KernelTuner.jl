@@ -8,6 +8,7 @@ const kt = Ref{Py}(Py(nothing))
 
 function __init__()
     # This runs when the user types `using KernelTuner`
+    Base.Experimental.register_error_hint(plotting_error_hint, MethodError)
     try
         kt[] = pyimport("kernel_tuner")
     catch e
@@ -243,5 +244,7 @@ function get_energy_observer_for_backend(backend::String, args...; kwargs...)::T
 
     return obs, observables
 end
+
+include("visualization.jl")
 
 end # module KernelTuner

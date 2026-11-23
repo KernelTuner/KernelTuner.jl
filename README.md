@@ -27,6 +27,7 @@ To install, just run `] add KernelTuner` in a Julia >= 1.11 environment. You can
 - [Additional information](#additional-information)
   - [GPU kernel writing](#gpu-kernel-writing)
   - [Input parameters](#input-parameters)
+  - [Visualizing results](#visualizing-results)
   - [Notes](#notes)
 - [Development, Testing \& Contributing](#development-testing--contributing)
   - [Requirements](#requirements)
@@ -179,6 +180,24 @@ As per [`example.jl`](examples/example.jl) in [examples](examples), the followin
 - Optional: strings of restrictions on the tunable parameters, search strategies, and many more (see [Kernel Tuner documentation](https://kerneltuner.github.io/kernel_tuner/stable/index.html))
 
 Then run the as follows: `tune_kernel("kernel!",kernelfile.jl", ["BLOCKDIM_X", ], ("BLOCKDIM_X*NUMBLOCKS_X",) , [("BLOCKDIM_X", [16, 32]),("NUMBLOCKS_X", [16, 32])])` 
+
+### Visualizing results
+
+KernelTuner.jl can plot tuning results once [Plots.jl](https://github.com/JuliaPlots/Plots.jl) is loaded (`using Plots`); Plots is an optional dependency.
+- `plot_tuning_heatmap(results, "block_size_x", "block_size_y")`: heatmap of the objective over two tunable parameters (the best value over any other parameters).
+- `plot_tuning_progress(cachefile)`: the objective of each configuration in order of evaluation, with the best so far.
+- `plot_time_energy(cachefile; energy_key="energy")`: time versus energy, with the Pareto front.
+- `with_live_tuning_plot(f, cachefile)`: redraws one of these plots while tuning. In a Jupyter notebook with Julia started with multiple threads (e.g. `--threads=auto`) the plot updates live, otherwise it is shown once tuning is done:
+
+```julia
+using KernelTuner, Plots
+results, env = with_live_tuning_plot("cache.json") do
+    tune_kernel("vector_add!", kernel_code, (size,), args, tune_params; cache="cache.json", lang="Julia")
+end
+plot_tuning_heatmap(results, "block_size_x", "work_per_thread")
+```
+
+The plotting functions accept either a cache file or the `results` of `tune_kernel`, and return the plot. Without Plots, `read_tuning_cache(cachefile)` returns the tunable parameter names and the configurations evaluated so far (also during tuning), and `pareto_front(a, b)` the Pareto-optimal points.
 
 ### Notes
 - The CPU backend is always available, but not selected by default. On devices with GPU backends, the GPU backend is selected by default. To use the CPU backend, you must pass `compiler_options=["CPU"]`. 

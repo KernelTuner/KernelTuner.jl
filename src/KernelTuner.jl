@@ -159,7 +159,7 @@ function detect_julia_gpu_backends()
 end
 
 export Tunable, AccuracyObserver
-function Tunable(name::String, value)
+function Tunable(name::AbstractString, value)
     return kt[].accuracy.Tunable(name, value)
 end
 
@@ -180,7 +180,7 @@ function AccuracyObserver(metric::Union{AbstractString,Base.Callable}="RMSE"; ke
 end
 
 export get_observer
-function get_observer(observer_type::String, args...; kwargs...)
+function get_observer(observer_type::AbstractString, args...; kwargs...)
     local obs
 
     # lazy-load the observer class based on the observer_type
@@ -229,11 +229,11 @@ function get_observer(observer_type::String, args...; kwargs...)
 end
 
 export get_energy_observer_for_backend
-function get_energy_observer_for_backend(backend::String, args...; kwargs...)::Tuple{Any,Vector{String}}
+function get_energy_observer_for_backend(backend::Union{AbstractString,Nothing}="default", args...; kwargs...)::Tuple{Any,Vector{String}}
     local obs
-    backend = uppercase(backend)
-    if backend == "DEFAULT" || backend === nothing
-        backend = detect_julia_gpu_backends()[1]  # get the first available backend
+    backend = isnothing(backend) ? "DEFAULT" : uppercase(backend)
+    if backend == "DEFAULT"
+        backend = first(detect_julia_gpu_backends())  # the first available backend, CPU if there is no GPU
     end
 
     # get the correct observer based on the backend
@@ -248,7 +248,7 @@ function get_energy_observer_for_backend(backend::String, args...; kwargs...)::T
         end
         obs = get_observer("JuliaNVMLObserver", args...; kwargs...)
     else
-        error("No observer available for backend: $backend")
+        error("No energy observer available for backend $backend: energy can be measured on CUDA, AMD and Metal GPUs")
     end
 
     # get the selected observables from the observer

@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Added `read_tuning_cache` and `pareto_front`.
 - `tune_kernel` and `run_kernel` use `lang="Julia"` by default.
 - Fixed passing `grid_div_x/y/z`, `block_size_names`, `restrictions` and `compiler_options` as Julia vectors or tuples.
+- `get_energy_observer_for_backend`, `get_observer` and `Tunable` accept any string type (e.g. a `SubString`), and `get_energy_observer_for_backend()` uses the default backend.
 
 ## [1.1.0] - 2026-11-13
 - Implemented Julia observers for Metal, Nvidia and AMD energy measurements.

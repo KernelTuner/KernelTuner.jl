@@ -44,7 +44,21 @@ function convert_kernel_arguments(args, kwargs)
     if haskey(kwargs, :arguments)
         kwargs = merge(NamedTuple(kwargs), (arguments=map(to_numpy_scalar, kwargs[:arguments]),))
     end
-    return args, kwargs
+    return args, convert_list_options(kwargs)
+end
+
+# Options that Kernel Tuner expects as Python lists. PythonCall passes a Julia vector as a wrapped Julia object, which
+# Kernel Tuner does not always recognize (e.g. it takes a vector `grid_div_x` for a callable), and a tuple as a Python
+# tuple, which cannot be appended to (e.g. `block_size_names`). Converting them to lists, including nested ones,
+# makes vectors and tuples work for all of these options.
+const list_options = (:grid_div_x, :grid_div_y, :grid_div_z, :block_size_names, :restrictions, :compiler_options)
+
+to_python_list(x) = x
+to_python_list(x::Union{AbstractVector,Tuple}) = pylist(Any[to_python_list(v) for v in x])
+
+function convert_list_options(kwargs)
+    converted = (; (k => to_python_list(v) for (k, v) in pairs(kwargs) if k in list_options)...)
+    return isempty(converted) ? kwargs : merge(NamedTuple(kwargs), converted)
 end
 
 # Convert a value coming from Python into its Julia counterpart (numbers, strings, arrays, wrapped Julia objects).

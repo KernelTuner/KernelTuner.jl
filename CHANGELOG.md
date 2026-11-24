@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## [1.2.0] - 2026-11-25
 - Added visualization of tuning results (heatmaps, tuning progress, time versus energy, live plotting during tuning) as an optional extension that loads with Plots.jl.
 - Added `read_tuning_cache` and `pareto_front`.
 - `tune_kernel` and `run_kernel` use `lang="Julia"` by default.

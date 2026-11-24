@@ -98,10 +98,18 @@ function call_kernel_tuner(f, args...; kwargs...)
     end
 end
 
+# Kernels tuned from Julia are Julia kernels unless the user says otherwise, so `lang` defaults to "Julia".
+# `position` is the position of `lang` among the positional arguments of the Python function, as it may be passed there too.
+function with_default_lang(args, kwargs, position::Int)
+    (haskey(kwargs, :lang) || length(args) >= position) && return kwargs
+    return merge(NamedTuple(kwargs), (lang="Julia",))
+end
+
 # wrap the Python functions
 export tune_kernel
 function tune_kernel(args...; kwargs...)
     args, kwargs = convert_kernel_arguments(args, kwargs)
+    kwargs = with_default_lang(args, kwargs, 14)
     if haskey(kwargs, :metrics)
         kwargs = merge(NamedTuple(kwargs), (metrics=convert_metrics(kwargs[:metrics]),))
     end
@@ -112,6 +120,7 @@ end
 export run_kernel
 function run_kernel(args...; kwargs...)
     py_args, py_kwargs = convert_kernel_arguments(args, kwargs)
+    py_kwargs = with_default_lang(py_args, py_kwargs, 9)
     result = call_kernel_tuner(kt[].run_kernel, py_args...; py_kwargs...)
     result_converted = Vector{Any}(undef, length(result))
     # convert the processed resulting arguments back to their Julia types

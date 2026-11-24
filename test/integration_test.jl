@@ -85,7 +85,6 @@ function run_integration_test(compiler_options)
             [arg[ts] for arg in args_list],
             [(name, config[name]) for name in names],
             block_size_names=["TILESIZEMUL", "QRSPLIT"],      # block size (workgroup) dimensions
-            lang="Julia",
             compiler_options=compiler_options,
         )
         Ar = result[1]
@@ -121,7 +120,6 @@ function run_integration_test(compiler_options)
             args,
             tune_params,
             block_size_names=["TILESIZEMUL", "QRSPLIT"],      # block size (workgroup) dimensions
-            lang="Julia",
             observers=observers,
             compiler_options=compiler_options,
             restrictions=restrictions,
@@ -169,7 +167,6 @@ function run_integration_test(compiler_options)
                 args,
                 tune_params,
                 block_size_names=["TILESIZEMUL", "QRSPLIT"],      # block size (workgroup) dimensions
-                lang="Julia",
                 compiler_options=compiler_options,
                 restrictions=restrictions,
                 iterations=7,

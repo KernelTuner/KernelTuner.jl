@@ -86,7 +86,6 @@ end
             (size,),
             arguments,
             [],
-            lang="Julia",
             compiler_options=compiler_options,
         )
 
@@ -130,7 +129,6 @@ end
             [c, a, b, size],
             tune_params,
             block_size_names=["block_size_x"],
-            lang="Julia",
             answer=[repeat(Float32[11, 22, 33, 44], outer=rsize), nothing, nothing, nothing],
             compiler_options=compiler_options,
         )
@@ -225,11 +223,15 @@ end
             # set up observers for energy measurement
             observers = []
             energy_observer_fields = []
-            try
-                energy_observer, energy_observer_fields = get_energy_observer_for_backend(config[:backend])
-                observers = [energy_observer]
-            catch e
-                @error "Failed to create energy observer for backend $config[:backend]: $e"
+            if uppercase(config[:backend]) == "CPU"
+                @info "Skipping energy measurement, as there is no energy observer for the CPU backend"
+            else
+                try
+                    energy_observer, energy_observer_fields = get_energy_observer_for_backend(config[:backend])
+                    observers = [energy_observer]
+                catch e
+                    @error "Failed to create energy observer for backend $(config[:backend])" exception = e
+                end
             end
 
             # Tune the kernel
@@ -242,7 +244,6 @@ end
                 observers=observers,
                 grid_div_x=["block_size_x", "work_per_thread"],
                 block_size_names=["block_size_x"],
-                lang="Julia",
                 answer=[repeat(Float32[11, 22, 33, 44], outer=rsize), nothing, nothing, nothing],
                 compiler_options=compiler_options,
                 cache=cache_file,
@@ -324,7 +325,6 @@ end
                     tune_params,
                     grid_div_x=["block_size_x", "work_per_thread"],
                     block_size_names=["block_size_x"],
-                    lang="Julia",
                     answer=[repeat(Float32[11, 22, 33, 44], outer=rsize), nothing, nothing, nothing],
                     compiler_options=compiler_options,
                     strategy=alg,

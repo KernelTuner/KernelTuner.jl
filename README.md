@@ -89,7 +89,6 @@ results = KernelTuner.run_kernel(
     (size,),
     arguments,
     [],
-    lang="Julia",
     compiler_options=["CPU"],
 )
 println("Kernel completed. First 10 results: ", results[1][1:10])
@@ -110,7 +109,6 @@ results = KernelTuner.tune_kernel(
     [c, a, b, size],
     tune_params,
     block_size_names=["block_size_x"],
-    lang="Julia",
     compiler_options=["CPU"],
 )
 ```
@@ -154,7 +152,6 @@ results = KernelTuner.tune_kernel(
     tune_params,
     grid_div_x=["block_size_x", "work_per_thread"],
     block_size_names=["block_size_x"],
-    lang="Julia",
     compiler_options=["CPU"],
 )
 ```
@@ -192,7 +189,7 @@ KernelTuner.jl can plot tuning results once [Plots.jl](https://github.com/JuliaP
 ```julia
 using KernelTuner, Plots
 results, env = with_live_tuning_plot("cache.json") do
-    tune_kernel("vector_add!", kernel_code, (size,), args, tune_params; cache="cache.json", lang="Julia")
+    tune_kernel("vector_add!", kernel_code, (size,), args, tune_params; cache="cache.json")
 end
 plot_tuning_heatmap(results, "block_size_x", "work_per_thread")
 ```

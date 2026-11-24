@@ -53,6 +53,5 @@ results = kt.run_kernel(
     (size,),
     arguments,
     [],
-    lang="Julia",
     compiler_options=["CPU"],
 )

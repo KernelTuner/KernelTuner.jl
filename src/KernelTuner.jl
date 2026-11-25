@@ -2,6 +2,7 @@ module KernelTuner
 
 using PythonCall
 using CondaPkg
+import GPUSelect
 
 # Initialize a global reference for the Python module
 const kt = Ref{Py}(Py(nothing))
@@ -153,9 +154,26 @@ function run_kernel(args...; kwargs...)
     return result_converted
 end
 
+# GPUSelect's backend package names and the matching Kernel Tuner Julia backend names
+const kernel_tuner_backend_names = Dict(
+    "CUDA" => "CUDA", "AMDGPU" => "AMD", "Metal" => "METAL", "oneAPI" => "INTEL",
+)
+
 export detect_julia_gpu_backends
+"""
+    detect_julia_gpu_backends() -> Vector{String}
+
+The Kernel Tuner Julia backends available on this machine: the GPU backend (`"CUDA"`, `"AMD"`, `"METAL"` or
+`"INTEL"`) if a GPU is detected, followed by `"CPU"`, which is always available. The names can be passed as compiler
+option to `tune_kernel` and to [`get_energy_observer_for_backend`](@ref).
+
+The GPU is detected with [GPUSelect.jl](https://github.com/SimonDanisch/GPUSelect.jl) from the installed GPU driver,
+without loading any GPU package.
+"""
 function detect_julia_gpu_backends()
-    return pyconvert(Vector{String}, pyimport("kernel_tuner.backends.julia_helper").detect_julia_gpu_backends())
+    pkgid = GPUSelect.find_gpu_pkgid()
+    gpu = isnothing(pkgid) ? nothing : get(kernel_tuner_backend_names, pkgid.name, nothing)  # e.g. Lava (Vulkan) is not supported
+    return isnothing(gpu) ? ["CPU"] : [gpu, "CPU"]
 end
 
 export Tunable, AccuracyObserver
